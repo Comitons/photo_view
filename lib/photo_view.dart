@@ -255,7 +255,7 @@ class PhotoView extends StatefulWidget {
     this.onTapDown,
     this.onScaleEnd,
     this.onDoubleTapZoomEnd,
-    this.enableTapDragZoom,
+    this.enableDoubleTapZoom,
     this.customSize,
     this.gestureDetectorBehavior,
     this.tightMode,
@@ -293,7 +293,7 @@ class PhotoView extends StatefulWidget {
     this.onTapDown,
     this.onScaleEnd,
     this.onDoubleTapZoomEnd,
-    this.enableTapDragZoom,
+    this.enableDoubleTapZoom,
     this.customSize,
     this.gestureDetectorBehavior,
     this.tightMode,
@@ -395,7 +395,7 @@ class PhotoView extends StatefulWidget {
   /// particular location.
   final PhotoViewImageScaleEndCallback? onScaleEnd;
 
-  final bool? enableTapDragZoom;
+  final bool? enableDoubleTapZoom;
 
   final PhotoViewDoubleTapZoomEndCallback? onDoubleTapZoomEnd;
 
@@ -530,7 +530,7 @@ class _PhotoViewState extends State<PhotoView> with AutomaticKeepAliveClientMixi
                 onTapDown: widget.onTapDown,
                 onScaleEnd: widget.onScaleEnd,
                 onDoubleTapZoomEnd: widget.onDoubleTapZoomEnd,
-                enableTapDragZoom: widget.enableTapDragZoom,
+                enableTapDragZoom: widget.enableDoubleTapZoom,
                 outerSize: computedOuterSize,
                 gestureDetectorBehavior: widget.gestureDetectorBehavior,
                 tightMode: widget.tightMode,
@@ -558,7 +558,7 @@ class _PhotoViewState extends State<PhotoView> with AutomaticKeepAliveClientMixi
                 onTapDown: widget.onTapDown,
                 onScaleEnd: widget.onScaleEnd,
                 onDoubleTapZoomEnd: widget.onDoubleTapZoomEnd,
-                enableTapDragZoom: widget.enableTapDragZoom,
+                enableTapDragZoom: widget.enableDoubleTapZoom,
                 outerSize: computedOuterSize,
                 gestureDetectorBehavior: widget.gestureDetectorBehavior,
                 tightMode: widget.tightMode,

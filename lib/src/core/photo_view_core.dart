@@ -1,13 +1,13 @@
 import 'package:flutter/widgets.dart';
 import 'package:photo_view/photo_view.dart'
     show
-        PhotoViewDoubleTapZoomEndCallback,
-        PhotoViewHeroAttributes,
-        PhotoViewImageScaleEndCallback,
-        PhotoViewImageTapDownCallback,
-        PhotoViewImageTapUpCallback,
-        PhotoViewScaleState,
-        ScaleStateCycle;
+    PhotoViewDoubleTapZoomEndCallback,
+    PhotoViewHeroAttributes,
+    PhotoViewImageScaleEndCallback,
+    PhotoViewImageTapDownCallback,
+    PhotoViewImageTapUpCallback,
+    PhotoViewScaleState,
+    ScaleStateCycle;
 import 'package:photo_view/src/controller/photo_view_controller.dart';
 import 'package:photo_view/src/controller/photo_view_controller_delegate.dart';
 import 'package:photo_view/src/controller/photo_view_scalestate_controller.dart';
@@ -209,64 +209,99 @@ class PhotoViewCoreState extends State<PhotoViewCore> with TickerProviderStateMi
     }
   }
 
-  void onZoomStart(TapDragZoomStartDetails details) {
+  void onZoomStart(DoubleTapZoomStartDetails details) {
     _rotationBefore = controller.rotation;
     _scaleBefore = scale;
     _normalizedPosition = details.localPoint;
     _scaleAnimationController.stop();
     _positionAnimationController.stop();
     _rotationAnimationController.stop();
+
+    final _currentScale = scale;
+    final halfMaxScale = scaleBoundaries.maxScale / 2;
+    final maxScale = scaleBoundaries.maxScale;
+    final minScale = scaleBoundaries.minScale;
+
+    final newScale = _currentScale < halfMaxScale ? halfMaxScale : _currentScale < maxScale ? maxScale : minScale;
+
+
+    animateScale(_currentScale, newScale);
+
+    if (newScale == minScale) {
+      final double scaleComebackRatio = minScale / maxScale;
+      // animateScale(_scale, maxScale);
+      final Offset clampedPosition = clampPosition(
+        position: controller.position * scaleComebackRatio,
+        scale: minScale,
+      );
+      animatePosition(controller.position, clampedPosition);
+      //   return;
+    } else {
+      // final double scaleComebackRatio = newScale / _currentScale;
+      // final Offset clampedPosition = clampPosition(
+      //   position: details.localPoint * scaleComebackRatio,
+      //   scale: newScale
+      // );
+
+      print('CURRENT POSITION ${controller.position.dx} ${controller.position.dy}');
+      print('LOCAL POINT ${details.localPoint.dx} ${details.localPoint.dy}');
+      print('CURRENT SCALE $_currentScale');
+      final to = localPosition2Offset(details.localPoint - controller.position, _currentScale);
+      print('LOCAL POINT TO OFFSET ${to.dx} ${to.dy}');
+
+      animatePosition(controller.position, to);
+    }
   }
 
-  void onZoomUpdate(TapDragZoomUpdateDetails details) {
-    final Offset delta = details.localPoint - _normalizedPosition!;
-    double newScale = _scaleBefore! + delta.dy / scaleBoundaries.outerSize.height * 5;
-
-    if (newScale < scaleBoundaries.minScale) {
-      newScale = scaleBoundaries.minScale;
-    }
-
-    updateScaleStateFromNewScale(newScale);
-
-    if (controller.position == Offset.zero && _scaleBefore! == 1) {
-      animatePosition(Offset.zero, localPosition2Offset(details.localPoint, _scaleBefore!));
-    }
-    updateMultiple(scale: newScale);
+  void onZoomUpdate(DoubleTapZoomUpdateDetails details) {
+    // final Offset delta = details.localPoint - _normalizedPosition!;
+    // double newScale = _scaleBefore! + delta.dy / scaleBoundaries.outerSize.height * 5;
+    //
+    // if (newScale < scaleBoundaries.minScale) {
+    //   newScale = scaleBoundaries.minScale;
+    // }
+    //
+    // updateScaleStateFromNewScale(newScale);
+    //
+    // if (controller.position == Offset.zero && _scaleBefore! == 1) {
+    //   animatePosition(Offset.zero, localPosition2Offset(details.localPoint, _scaleBefore!));
+    // }
+    // updateMultiple(scale: newScale);
   }
 
   void onZoomEnd() {
-    final double _scale = scale;
-    final Offset _position = controller.position;
-    final double maxScale = scaleBoundaries.maxScale;
-    final double minScale = scaleBoundaries.minScale;
+    // final double _scale = scale;
+    // final Offset _position = controller.position;
+    // final double maxScale = scaleBoundaries.maxScale;
+    // final double minScale = scaleBoundaries.minScale;
 
     widget.onDoubleTapZoomEnd?.call(context, controller.value);
 
-    //animate back to maxScale if gesture exceeded the maxScale specified
-    if (_scale > maxScale) {
-      final double scaleComebackRatio = maxScale / _scale;
-      animateScale(_scale, maxScale);
-      final Offset clampedPosition = clampPosition(
-        position: _position * scaleComebackRatio,
-        scale: maxScale,
-      );
-      animatePosition(_position, clampedPosition);
-      return;
-    }
+    // animate back to maxScale if gesture exceeded the maxScale specified
+    // if (_scale <= minScale) {
+    //   final double scaleComebackRatio = minScale / _scale;
+    // animateScale(_scale, maxScale);
+    // final Offset clampedPosition = clampPosition(
+    //   position: _position * scaleComebackRatio,
+    //   scale: minScale,
+    // );
+    // animatePosition(_position, clampedPosition);
+    //   return;
+    // }
 
     //animate back to minScale if gesture fell smaller than the minScale specified
-    if (_scale < minScale) {
-      final double scaleComebackRatio = minScale / _scale;
-      animateScale(_scale, minScale);
-      animatePosition(
-        _position,
-        clampPosition(
-          position: _position * scaleComebackRatio,
-          scale: minScale,
-        ),
-      );
-      return;
-    }
+    // if (_scale < minScale) {
+    //   final double scaleComebackRatio = minScale / _scale;
+    //   animateScale(_scale, minScale);
+    //   animatePosition(
+    //     _position,
+    //     clampPosition(
+    //       position: _position * scaleComebackRatio,
+    //       scale: minScale,
+    //     ),
+    //   );
+    //   return;
+    // }
   }
 
   void onDoubleTap() {
@@ -359,9 +394,9 @@ class PhotoViewCoreState extends State<PhotoViewCore> with TickerProviderStateMi
         stream: controller.outputStateStream,
         initialData: controller.prevValue,
         builder: (
-          BuildContext context,
-          AsyncSnapshot<PhotoViewControllerValue> snapshot,
-        ) {
+            BuildContext context,
+            AsyncSnapshot<PhotoViewControllerValue> snapshot,
+            ) {
           if (snapshot.hasData) {
             final PhotoViewControllerValue value = snapshot.data!;
             final useImageScale = widget.filterQuality != FilterQuality.none;
@@ -422,13 +457,13 @@ class PhotoViewCoreState extends State<PhotoViewCore> with TickerProviderStateMi
   Widget _buildHero() {
     return heroAttributes != null
         ? Hero(
-            tag: heroAttributes!.tag,
-            createRectTween: heroAttributes!.createRectTween,
-            flightShuttleBuilder: heroAttributes!.flightShuttleBuilder,
-            placeholderBuilder: heroAttributes!.placeholderBuilder,
-            transitionOnUserGestures: heroAttributes!.transitionOnUserGestures,
-            child: _buildChild(),
-          )
+      tag: heroAttributes!.tag,
+      createRectTween: heroAttributes!.createRectTween,
+      flightShuttleBuilder: heroAttributes!.flightShuttleBuilder,
+      placeholderBuilder: heroAttributes!.placeholderBuilder,
+      transitionOnUserGestures: heroAttributes!.transitionOnUserGestures,
+      child: _buildChild(),
+    )
         : _buildChild();
   }
 
@@ -436,13 +471,13 @@ class PhotoViewCoreState extends State<PhotoViewCore> with TickerProviderStateMi
     return widget.hasCustomChild
         ? widget.customChild!
         : Image(
-            image: widget.imageProvider!,
-            semanticLabel: widget.semanticLabel,
-            gaplessPlayback: widget.gaplessPlayback ?? false,
-            filterQuality: widget.filterQuality,
-            width: scaleBoundaries.childSize.width * scale,
-            fit: BoxFit.contain,
-          );
+      image: widget.imageProvider!,
+      semanticLabel: widget.semanticLabel,
+      gaplessPlayback: widget.gaplessPlayback ?? false,
+      filterQuality: widget.filterQuality,
+      width: scaleBoundaries.childSize.width * scale,
+      fit: BoxFit.contain,
+    );
   }
 
   @override
@@ -497,10 +532,10 @@ class PhotoViewCoreState extends State<PhotoViewCore> with TickerProviderStateMi
 
 class _CenterWithOriginalSizeDelegate extends SingleChildLayoutDelegate {
   const _CenterWithOriginalSizeDelegate(
-    this.subjectSize,
-    this.basePosition,
-    this.useImageScale,
-  );
+      this.subjectSize,
+      this.basePosition,
+      this.useImageScale,
+      );
 
   final Size subjectSize;
   final Alignment basePosition;
@@ -532,11 +567,11 @@ class _CenterWithOriginalSizeDelegate extends SingleChildLayoutDelegate {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _CenterWithOriginalSizeDelegate &&
-          runtimeType == other.runtimeType &&
-          subjectSize == other.subjectSize &&
-          basePosition == other.basePosition &&
-          useImageScale == other.useImageScale;
+          other is _CenterWithOriginalSizeDelegate &&
+              runtimeType == other.runtimeType &&
+              subjectSize == other.subjectSize &&
+              basePosition == other.basePosition &&
+              useImageScale == other.useImageScale;
 
   @override
   int get hashCode => subjectSize.hashCode ^ basePosition.hashCode ^ useImageScale.hashCode;
