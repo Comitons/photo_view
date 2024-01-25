@@ -224,7 +224,17 @@ class PhotoViewCoreState extends State<PhotoViewCore> with TickerProviderStateMi
 
     final newScale = _currentScale < halfMaxScale ? halfMaxScale : _currentScale < maxScale ? maxScale : minScale;
 
+
     animateScale(_currentScale, newScale);
+
+    if (newScale == minScale) {
+      final double scaleComebackRatio = minScale / maxScale;
+      final Offset clampedPosition = clampPosition(
+        position: controller.position * scaleComebackRatio,
+        scale: minScale,
+      );
+      animatePosition(controller.position, clampedPosition);
+    }
   }
 
   void onZoomUpdate(DoubleTapZoomUpdateDetails details) {
