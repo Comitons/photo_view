@@ -218,7 +218,7 @@ class PhotoViewCoreState extends State<PhotoViewCore> with TickerProviderStateMi
     _rotationAnimationController.stop();
 
     final _currentScale = scale;
-    final halfMaxScale = scaleBoundaries.maxScale / 2;
+    final halfMaxScale = (scaleBoundaries.maxScale + scaleBoundaries.minScale) / 2;
     final maxScale = scaleBoundaries.maxScale;
     final minScale = scaleBoundaries.minScale;
 
